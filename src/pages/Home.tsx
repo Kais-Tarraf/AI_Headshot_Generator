@@ -3,6 +3,8 @@ import { Hero } from "../components/Hero";
 import UploadCard from "../components/UploadCard";
 import { useHeadshot } from "../hooks/use-headshot";
 import TransformationGrid from "../components/TransformationGrid";
+import ResultPreview from "../components/ResultPreview";
+import ExportActions from "../components/ExportActions";
 
 const Home = () => {
 	const headshot = useHeadshot();
@@ -24,9 +26,11 @@ const Home = () => {
 				onUploadSuccess={headshot.handleUploadSuccess}
 			/>
 			{headshot.hasUpload && headshot.originalImage && (
-				<section>
-					<div>
-						<h2>Original Uploaded Image</h2>
+				<section className="px-4 py-8">
+					<div className="mx-auto max-w-md text-center">
+						<h2 className="mb-4 text-xl font-semibold">
+							Original Uploaded Image
+						</h2>
 						<AdvancedImage
 							cldImg={headshot.originalImage}
 							plugins={[placeholder({ mode: "blur" }), lazyload()]}
@@ -40,6 +44,21 @@ const Home = () => {
 				<TransformationGrid
 					title="AI Headshot Styles"
 					presets={headshot.presetImages}
+					selectedPresetId={headshot.selectedPresetId}
+					onSelect={headshot.selectPreset}
+				/>
+			)}
+			{headshot.hasUpload && (
+				<ResultPreview
+					originalImage={headshot.originalImage}
+					selectedImage={headshot.selectedImage}
+					selectedPreset={headshot.selectedPreset}
+				/>
+			)}
+			{headshot.hasUpload && headshot.publicId && headshot.selectedPreset && (
+				<ExportActions
+					publicId={headshot.publicId}
+					selectedPreset={headshot.selectedPreset}
 				/>
 			)}
 		</div>

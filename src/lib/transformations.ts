@@ -5,7 +5,7 @@ import { autoGravity } from "@cloudinary/url-gen/qualifiers/gravity";
 import { format, quality } from "@cloudinary/url-gen/actions/delivery";
 import { auto as autoQuality } from "@cloudinary/url-gen/qualifiers/quality";
 import { auto } from "@cloudinary/url-gen/qualifiers/format";
-import type { HeadshotPreset } from "../types";
+import type { ExportFormat, HeadshotPreset } from "../types";
 import {
 	generativeBackgroundReplace,
 	generativeReplace,
@@ -99,4 +99,39 @@ export function buildOriginalPreview(publicId: string): CloudinaryImage {
 		.resize(fill().width(WIDTH).height(HEIGHT).gravity(autoGravity()))
 		.delivery(format(auto()))
 		.delivery(quality(autoQuality()));
+}
+export function getPresetById(id: string): HeadshotPreset | undefined {
+	return ALL_PRESETS.find((p) => p.id === id);
+}
+export function getExportTransformationChain(
+	preset: HeadshotPreset,
+	publicId: string
+) {
+	const url = preset.build(publicId).toURL();
+	const marker = "/image/upload/";
+	const rest = url.split(marker)[1]?.split("?")[0] ?? "";
+	let path = rest.replace(/^v\d+\//, "");
+	const suffix = `/${publicId}`;
+	if (path.endsWith(suffix)) {
+		return path.slice(0, -suffix.length);
+	}
+	return preset.transformationChain;
+}
+
+export function getExportUrl(
+	publicId: string,
+	preset: HeadshotPreset,
+	format: ExportFormat
+): string {
+	const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+	if (!cloudName) {
+		throw new Error(
+			"Cloudinary cloud name is not defined in environment variables."
+		);
+	}
+	let chain = getExportTransformationChain(preset, publicId);
+	if (chain.endsWith("/")) chain = chain.slice(0, -1);
+
+	chain = chain.replace(/\/f_auto\//, `/f_${format}/`);
+	return `https://res.cloudinary.com/${cloudName}/image/upload/${chain}/${publicId}.${format}`;
 }

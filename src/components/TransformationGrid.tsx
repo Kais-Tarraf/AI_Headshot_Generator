@@ -1,6 +1,8 @@
 import type { CloudinaryImage } from "@cloudinary/url-gen/index";
 import type { HeadshotPreset } from "../types";
 import { AdvancedImage, lazyload, placeholder } from "@cloudinary/react";
+import { cn } from "../lib/utils";
+import { Check } from "lucide-react";
 
 interface PresetImage {
 	presets: HeadshotPreset;
@@ -9,26 +11,40 @@ interface PresetImage {
 interface TransformationGridProps {
 	title: string;
 	presets: PresetImage[];
-	// selectedPresetId: string | null;
-	// onSelect: (id: string) => void;
+	selectedPresetId: string | null;
+	onSelect: (id: string) => void;
 }
 
 const PresetCard = ({
 	preset,
 	image,
+	isSelected,
+	onSelect,
 }: {
 	preset: HeadshotPreset;
 	image: CloudinaryImage;
+	isSelected: boolean;
+	onSelect: () => void;
 }) => {
 	return (
-		<button>
-			<div className="relative aspect-[4/5] w-full overflow-hidden bg-black/30">
+		<button onClick={onSelect}>
+			<div
+				className={cn(
+					`relative aspect-[4/5] w-full overflow-hidden bg-black/30 border-1 rounded-xl`,
+					isSelected ? "border-indigo-500" : "border-transparent"
+				)}
+			>
 				<AdvancedImage
 					cldImg={image}
 					plugins={[placeholder({ mode: "blur" }), lazyload()]}
 					alt="Original Upload"
 					className="mx-auto rounded-xl shadow-lg"
 				/>
+				{isSelected && (
+					<div className="absolute right-2 top-2 rounded-full bg-indigo-600 p-1">
+						<Check className="h-4 w-4 text-white" />
+					</div>
+				)}
 			</div>
 			<div className="p-4">
 				<h4 className="font-semibold">{preset.name}</h4>
@@ -38,7 +54,12 @@ const PresetCard = ({
 	);
 };
 
-const TransformationGrid = ({ title, presets }: TransformationGridProps) => {
+const TransformationGrid = ({
+	title,
+	presets,
+	onSelect,
+	selectedPresetId,
+}: TransformationGridProps) => {
 	if (presets.length === 0) return null;
 	return (
 		<section className="px-4 py-12">
@@ -52,7 +73,13 @@ const TransformationGrid = ({ title, presets }: TransformationGridProps) => {
 				</p>
 				<div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
 					{presets.map(({ preset, image }) => (
-						<PresetCard preset={preset} image={image} />
+						<PresetCard
+							preset={preset}
+							image={image}
+							key={preset.id}
+							isSelected={selectedPresetId === preset.id}
+							onSelect={() => onSelect(preset.id)}
+						/>
 					))}
 				</div>
 			</div>
